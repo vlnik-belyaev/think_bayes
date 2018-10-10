@@ -1,3 +1,14 @@
+import bisect
+import copy
+import logging
+import math
+import numpy
+import random
+
+import scipy.stats
+from scipy.special import erfinv, erf, gammaln
+from scipy import log
+
 """This file contains code for use with "Think Bayes",
 by Allen B. Downey, available from greenteapress.com
 
@@ -18,18 +29,8 @@ Cdf: represents a discrete cumulative distribution function
 Pdf: represents a continuous probability density function
 
 """
-
-import bisect
-import copy
-import logging
-import math
-import numpy
-import random
-
-import scipy.stats
-from scipy.special import erf, erfinv, gammaln
-
 ROOT2 = math.sqrt(2)
+
 
 def RandomSeed(x):
     """Initialize the random and numpy.random generators.
@@ -38,7 +39,7 @@ def RandomSeed(x):
     """
     random.seed(x)
     numpy.random.seed(x)
-    
+
 
 def Odds(p):
     """Computes odds for a given probability.
@@ -134,7 +135,7 @@ class _DictWrapper(object):
             self.InitMapping,
             self.InitSequence,
             self.InitFailure,
-            ]
+        ]
 
         for method in init_methods:
             try:
@@ -283,7 +284,7 @@ class _DictWrapper(object):
     def Print(self):
         """Prints the values and freqs/probs in ascending order."""
         for val, prob in sorted(self.d.iteritems()):
-            print val, prob
+            print(val, prob)
 
     def Set(self, x, y=0):
         """Sets the freq/prob associated with the value x.
@@ -324,12 +325,15 @@ class _DictWrapper(object):
 
     def Total(self):
         """Returns the total of the frequencies/probabilities in the map."""
-        total = sum(self.d.itervalues())
+        # total = sum(self.d.itervalues())
+        total = sum(iter(self.d.values()))
+
         return total
 
     def MaxLike(self):
         """Returns the largest frequency/probability in the map."""
-        return max(self.d.itervalues())
+        # return max(self.d.itervalues())
+        return max(iter(self.d.values()))
 
 
 class Hist(_DictWrapper):
@@ -1223,7 +1227,7 @@ class Suite(Pmf):
     def Print(self):
         """Prints the hypotheses and their probabilities."""
         for hypo, prob in sorted(self.Items()):
-            print hypo, prob
+            print(hypo, prob)
 
     def MakeOdds(self):
         """Transforms from probabilities to odds.
@@ -1485,7 +1489,8 @@ def SampleSum(dists, n):
 
     returns: new Pmf of sums
     """
-    pmf = MakePmfFromList(RandomSum(dists) for i in xrange(n))
+    # pmf = MakePmfFromList(RandomSum(dists) for i in xrange(n))
+    pmf = MakePmfFromList(RandomSum(dists) for i in range(n))
     return pmf
 
 
@@ -1528,7 +1533,7 @@ def EvalBinomialPmf(k, n, p):
     Returns the probabily of k successes in n trials with probability p.
     """
     return scipy.stats.binom.pmf(k, n, p)
-    
+
 
 def EvalPoissonPmf(k, lam):
     """Computes the Poisson PMF.
@@ -1550,7 +1555,8 @@ def MakePoissonPmf(lam, high, step=1):
     returns: normalized Pmf
     """
     pmf = Pmf()
-    for k in xrange(0, high + 1, step):
+    # for k in xrange(0, high + 1, step):
+    for k in range(0, high + 1, step):
         p = EvalPoissonPmf(k, lam)
         pmf.Set(k, p)
     pmf.Normalize()
@@ -1645,6 +1651,7 @@ class Beta(object):
 
     See http://en.wikipedia.org/wiki/Beta_distribution
     """
+
     def __init__(self, alpha=1, beta=1, name=''):
         """Initializes a Beta distribution."""
         self.alpha = alpha
@@ -1697,14 +1704,16 @@ class Beta(object):
             pmf = cdf.MakePmf()
             return pmf
 
-        xs = [i / (steps - 1.0) for i in xrange(steps)]
+        # xs = [i / (steps - 1.0) for i in xrange(steps)]
+        xs = [i / (steps - 1.0) for i in range(steps)]
         probs = [self.EvalPdf(x) for x in xs]
         pmf = MakePmfFromDict(dict(zip(xs, probs)), name)
         return pmf
 
     def MakeCdf(self, steps=101):
         """Returns the CDF of this distribution."""
-        xs = [i / (steps - 1.0) for i in xrange(steps)]
+        # xs = [i / (steps - 1.0) for i in xrange(steps)]
+        xs = [i / (steps - 1.0) for i in range(steps)]
         ps = [scipy.special.betainc(self.alpha, self.beta, x) for x in xs]
         cdf = Cdf(xs, ps)
         return cdf
@@ -1827,5 +1836,3 @@ def LogBinomialCoef(n, k):
     Returns: float
     """
     return n * log(n) - k * log(k) - (n - k) * log(n - k)
-
-
